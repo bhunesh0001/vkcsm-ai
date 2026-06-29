@@ -1,7 +1,7 @@
 import cv2
-from mediapipe.python.solutions import face_mesh
+import mediapipe as mp
 
-mp_face_mesh = face_mesh
+mp_face_mesh = mp.solutions.face_mesh
 
 face_mesh_detector = mp_face_mesh.FaceMesh(
     static_image_mode=True,
@@ -17,15 +17,17 @@ def detect_face_direction(frame):
 
     results = face_mesh_detector.process(rgb)
 
-    if not results.multi_face_landmarks:
+    if results.multi_face_landmarks is None:
         return {
             "faceCount": 0,
             "violation": "NO_FACE"
         }
 
-    if len(results.multi_face_landmarks) > 1:
+    face_count = len(results.multi_face_landmarks)
+
+    if face_count > 1:
         return {
-            "faceCount": len(results.multi_face_landmarks),
+            "faceCount": face_count,
             "violation": "MULTIPLE_FACE"
         }
 
