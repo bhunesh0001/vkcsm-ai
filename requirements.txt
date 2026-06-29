@@ -3,5 +3,5 @@ uvicorn
 numpy
 opencv-contrib-python
 python-multipart
-insightface==0.7.3
-onnxruntime==1.19.2
+onnxruntime
+insightface
