@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
-
+print("MediaPipe file:", mp.__file__)
+print("MediaPipe dir:", dir(mp))
 mp_face_mesh = mp.solutions.face_mesh
 
 face_mesh_detector = mp_face_mesh.FaceMesh(
