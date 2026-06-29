@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import base64
 import cv2
 import numpy as np
-import binascii
+
 from landmark import detect_landmarks
 from headpose import get_head_direction
 
@@ -34,34 +34,16 @@ def home():
 @app.post("/detect")
 def detect(data: FaceDetectDTO):
 
-   
-
-img = data.image
-
-try:
+    img = data.image
 
     if "," in img:
         img = img.split(",")[1]
 
     image = base64.b64decode(img)
 
-except binascii.Error:
-
-    return {
-        "success": False,
-        "message": "Invalid Base64 Image"
-    }
-
     nparr = np.frombuffer(image, np.uint8)
 
     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-if frame is None:
-
-    return {
-        "success": False,
-        "message": "Image Decode Failed"
-    }
 
     result = detect_landmarks(frame)
 
@@ -86,7 +68,7 @@ if frame is None:
         "matrixCount": len(result.facial_transformation_matrixes),
         "matrix": str(result.facial_transformation_matrixes)
     }
-
+    
     return {
         "faceCount": 1,
         "violation": direction
