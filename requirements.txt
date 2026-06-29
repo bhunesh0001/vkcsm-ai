@@ -1,7 +1,7 @@
 fastapi
 uvicorn
-numpy
 opencv-contrib-python
+numpy
 python-multipart
-onnxruntime
-insightface
+
+mediapipe==0.10.21

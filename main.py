@@ -5,7 +5,8 @@ import base64
 import cv2
 import numpy as np
 
-from detector import detect_face
+from landmark import detect_landmarks
+from headpose import get_head_direction
 
 app = FastAPI()
 
@@ -25,32 +26,50 @@ class FaceDetectDTO(BaseModel):
 
 @app.get("/")
 def home():
-
     return {
-        "status": "Running"
+        "message": "AI Proctor Running"
     }
 
 
 @app.post("/detect")
-def detect(dto: FaceDetectDTO):
+def detect(data: FaceDetectDTO):
 
-    img = dto.image
+    img = data.image
 
     if "," in img:
         img = img.split(",")[1]
 
-    img_bytes = base64.b64decode(img)
+    image = base64.b64decode(img)
 
-    npimg = np.frombuffer(
-        img_bytes,
-        np.uint8
-    )
+    nparr = np.frombuffer(image, np.uint8)
 
-    frame = cv2.imdecode(
-        npimg,
-        cv2.IMREAD_COLOR
-    )
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    result = detect_face(frame)
+    result = detect_landmarks(frame)
 
-    return result
+    # No face
+    if len(result.face_landmarks) == 0:
+        return {
+            "faceCount": 0,
+            "violation": "NO_FACE"
+        }
+
+    # Multiple faces
+    if len(result.face_landmarks) > 1:
+        return {
+            "faceCount": len(result.face_landmarks),
+            "violation": "MULTIPLE_FACE"
+        }
+
+      # Debug
+
+    return {
+        "faceCount": len(result.face_landmarks),
+        "matrixCount": len(result.facial_transformation_matrixes),
+        "matrix": str(result.facial_transformation_matrixes)
+    }
+    
+    return {
+        "faceCount": 1,
+        "violation": direction
+    }
