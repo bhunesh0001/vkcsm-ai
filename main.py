@@ -5,18 +5,18 @@ import base64
 import cv2
 import numpy as np
 
-from face_mesh import detect_face_direction
+from detector import detect_face
 
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],      # Development ke liye
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 class FaceDetectDTO(BaseModel):
     studentId: int
@@ -25,28 +25,32 @@ class FaceDetectDTO(BaseModel):
 
 @app.get("/")
 def home():
+
     return {
-        "message": "AI Proctor Running"
+        "status": "Running"
     }
 
 
 @app.post("/detect")
-def detect(data: FaceDetectDTO):
+def detect(dto: FaceDetectDTO):
 
-    img = data.image
+    img = dto.image
 
     if "," in img:
         img = img.split(",")[1]
 
-    image = base64.b64decode(img)
+    img_bytes = base64.b64decode(img)
 
-    nparr = np.frombuffer(image, np.uint8)
+    npimg = np.frombuffer(
+        img_bytes,
+        np.uint8
+    )
 
     frame = cv2.imdecode(
-        nparr,
+        npimg,
         cv2.IMREAD_COLOR
     )
 
-    result = detect_face_direction(frame)
+    result = detect_face(frame)
 
     return result
