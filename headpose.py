@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import math
 
 MODEL_POINTS = np.array([
     (0.0, 0.0, 0.0),          # Nose
@@ -10,6 +9,7 @@ MODEL_POINTS = np.array([
     (-28.9, -28.9, -24.1),    # Left Mouth
     (28.9, -28.9, -24.1)      # Right Mouth
 ], dtype=np.float64)
+
 
 def get_head_pose(image_points, width, height):
 
@@ -21,7 +21,7 @@ def get_head_pose(image_points, width, height):
         [focal_length, 0, center[0]],
         [0, focal_length, center[1]],
         [0, 0, 1]
-    ], dtype="double")
+    ], dtype=np.float64)
 
     dist_coeffs = np.zeros((4, 1))
 
@@ -52,7 +52,8 @@ def get_head_pose(image_points, width, height):
 
     return pitch, yaw, roll
 
-    def get_direction(pitch, yaw):
+
+def get_direction(pitch, yaw):
 
     if yaw < -20:
         return "LOOKING_LEFT"
