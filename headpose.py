@@ -1,29 +1,69 @@
+import cv2
+import numpy as np
 import math
 
-def get_head_direction(matrix):
+MODEL_POINTS = np.array([
+    (0.0, 0.0, 0.0),          # Nose
+    (0.0, -63.6, -12.5),      # Chin
+    (-43.3, 32.7, -26.0),     # Left Eye
+    (43.3, 32.7, -26.0),      # Right Eye
+    (-28.9, -28.9, -24.1),    # Left Mouth
+    (28.9, -28.9, -24.1)      # Right Mouth
+], dtype=np.float64)
 
-    r11 = matrix[0]
-    r13 = matrix[2]
-    r21 = matrix[4]
-    r22 = matrix[5]
-    r23 = matrix[6]
-    r31 = matrix[8]
-    r33 = matrix[10]
+def get_head_pose(image_points, width, height):
 
-    yaw = math.degrees(math.atan2(r13, r33))
-    pitch = math.degrees(math.atan2(-r23, r22))
-    roll = math.degrees(math.atan2(r21, r11))
+    focal_length = width
 
-    if yaw < -18:
+    center = (width / 2, height / 2)
+
+    camera_matrix = np.array([
+        [focal_length, 0, center[0]],
+        [0, focal_length, center[1]],
+        [0, 0, 1]
+    ], dtype="double")
+
+    dist_coeffs = np.zeros((4, 1))
+
+    success, rotation_vector, translation_vector = cv2.solvePnP(
+        MODEL_POINTS,
+        image_points,
+        camera_matrix,
+        dist_coeffs,
+        flags=cv2.SOLVEPNP_ITERATIVE
+    )
+
+    if not success:
+        return None
+
+    rotation_matrix, _ = cv2.Rodrigues(rotation_vector)
+
+    pose_matrix = cv2.hconcat(
+        (rotation_matrix, translation_vector)
+    )
+
+    _, _, _, _, _, _, eulerAngles = cv2.decomposeProjectionMatrix(
+        pose_matrix
+    )
+
+    pitch = float(eulerAngles[0])
+    yaw = float(eulerAngles[1])
+    roll = float(eulerAngles[2])
+
+    return pitch, yaw, roll
+
+    def get_direction(pitch, yaw):
+
+    if yaw < -20:
         return "LOOKING_LEFT"
 
-    if yaw > 18:
+    if yaw > 20:
         return "LOOKING_RIGHT"
 
-    if pitch > 15:
-        return "LOOKING_DOWN"
-
-    if pitch < -15:
+    if pitch < -18:
         return "LOOKING_UP"
+
+    if pitch > 18:
+        return "LOOKING_DOWN"
 
     return "OK"

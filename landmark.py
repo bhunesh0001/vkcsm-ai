@@ -13,8 +13,8 @@ options = FaceLandmarkerOptions(
     ),
     running_mode=VisionRunningMode.IMAGE,
     output_face_blendshapes=False,
-    output_facial_transformation_matrixes=True,
-    num_faces=2
+    output_facial_transformation_matrixes=False,
+    num_faces=1
 )
 
 landmarker = FaceLandmarker.create_from_options(options)
@@ -31,4 +31,29 @@ def detect_landmarks(frame):
 
     result = landmarker.detect(mp_image)
 
-    return result
+    if len(result.face_landmarks) == 0:
+        return None
+
+    landmarks = result.face_landmarks[0]
+
+    h, w = frame.shape[:2]
+
+    ids = [1, 152, 33, 263, 61, 291]
+
+    points = []
+
+    for idx in ids:
+
+        p = landmarks[idx]
+
+        points.append(
+            (
+                p.x * w,
+                p.y * h
+            )
+        )
+
+    return np.array(
+        points,
+        dtype=np.float64
+    )
